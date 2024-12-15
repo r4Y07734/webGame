@@ -4,6 +4,40 @@ const ctx = canvas.getContext("2d");
 canvas.height = 731;
 canvas.width = 1536;
 
+const socket = io("http://localhost:3000");
+
+const players = {};
+
+socket.on("newPlayer", (data) => {
+    players[data.id] = data;
+});
+
+socket.on("updatePlayer", (data) => {
+    if (players[data.id]) {
+        player[data.id].x = data.x;
+        player[data.id].y = data.y;
+    }
+});
+
+socket.on("removePlayer", (id) => {
+    delete players[id];
+});
+
+class Guest {
+    constructor() {
+
+    }
+
+    drawPlayers(ctx) {
+        Object.values(players).forEach((player) => {
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 25, 0, Math.PI * 2);
+            ctx.fill;
+        });
+    }
+}
+
 class Player {
     constructor() {
         this.x = 50;
@@ -30,12 +64,12 @@ class Player {
         if (this.y + this.height / 2 > 731) this.y = 731 - this.height / 2;
     }
 
-    draw(ctx) {
+    /*draw(ctx) {
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
-    }
+    }*/
 
     updatePlayerVelocity(keys) {
         if (keys.d && keys.a || keys.ArrowLeft && keys.ArrowRight || keys.d && keys.ArrowLeft || keys.a && keys.ArrowRight) {
@@ -57,10 +91,15 @@ class Player {
         } else {
             player.dy = 0;
         }
+
+        if (this.dx || this.dy) {
+            socket.emit("movePlayer", { x: this.dx, y: this.dy });
+        }
     }
 }
 
 const player = new Player();
+const guest = new Guest();
 
 const keys = {
     d: false,
@@ -92,7 +131,8 @@ function gameLoop(timestamp) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     player.update(deltaTime);
-    player.draw(ctx);
+    guest.drawPlayers(ctx);
+    //player.draw(ctx);
 
     requestAnimationFrame(gameLoop);
 }
