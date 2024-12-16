@@ -10,12 +10,16 @@ const players = {};
 
 socket.on("newPlayer", (data) => {
     players[data.id] = data;
+
+    if (data.id === socket.id) {
+        players[socket.id] = { x: player.x, y: player.y };
+    }
 });
 
 socket.on("updatePlayer", (data) => {
     if (players[data.id]) {
-        player[data.id].x = data.x;
-        player[data.id].y = data.y;
+        players[data.id].x = data.x;
+        players[data.id].y = data.y;
     }
 });
 
@@ -33,7 +37,7 @@ class Guest {
             ctx.fillStyle = "red";
             ctx.beginPath();
             ctx.arc(player.x, player.y, 25, 0, Math.PI * 2);
-            ctx.fill;
+            ctx.fill();
         });
     }
 }

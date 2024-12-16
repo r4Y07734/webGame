@@ -21,7 +21,9 @@ io.on("connection", (socket) => {
         if (players[socket.id]) {
             players[socket.id].x += data.dx;
             players[socket.id].y += data.dy;
-            io.emit("updatePlayer", { id: socket.id, ...players[socket.id] });
+            if (this.dx || this.dy) {
+                socket.emit("movePlayer", { dx: this.dx, dy: this.dy });
+            }
         }
     });
 
